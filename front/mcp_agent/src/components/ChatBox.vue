@@ -5,12 +5,12 @@ import MarkdownIt from 'markdown-it'
 const API_BASE = 'http://localhost:8000'
 
 const md = new MarkdownIt({
-  html: false, // 禁用 HTML 以防止 XSS
+  html: false, // Disable raw HTML to prevent XSS
   linkify: true,
   breaks: true
 })
 
-// 回复中的链接在新标签页打开
+// Open links in replies in a new tab
 const renderLinkOpen =
   md.renderer.rules.link_open ||
   ((tokens, idx, options, env, self) => self.renderToken(tokens, idx, options))
@@ -21,10 +21,10 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
 }
 
 const suggestions = [
-  '帮我规划东京 5 日游，预算适中，喜欢美食和街区散步',
-  '从旧金山开车去优胜美地要多久？沿途有哪些值得停留的地方？',
-  '巴黎卢浮宫附近有哪些评价好的餐厅？',
-  '查一下京都今天的天气，并建议穿什么'
+  'Plan a 5-day trip to Tokyo on a moderate budget — I love food and neighborhood walks',
+  'How long is the drive from San Francisco to Yosemite, and what stops are worth making along the way?',
+  'What are some well-reviewed restaurants near the Louvre in Paris?',
+  "Check today's weather in Kyoto and suggest what to wear"
 ]
 
 const newThreadId = () => `web-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
@@ -90,16 +90,16 @@ const sendMessage = async (text) => {
     const data = await response.json()
 
     if (!response.ok) {
-      messages.value.push({ role: 'error', content: data.detail || `请求失败（${response.status}）` })
+      messages.value.push({ role: 'error', content: data.detail || `Request failed (${response.status})` })
     } else if (data.status === 'success') {
       messages.value.push({ role: 'ai', content: data.content })
     } else if (data.status === 'empty') {
-      messages.value.push({ role: 'error', content: '没有获取到回复，请重试。' })
+      messages.value.push({ role: 'error', content: 'No reply received. Please try again.' })
     } else {
-      messages.value.push({ role: 'error', content: data.error || '发生未知错误。' })
+      messages.value.push({ role: 'error', content: data.error || 'An unknown error occurred.' })
     }
   } catch {
-    messages.value.push({ role: 'error', content: '无法连接后端服务，请确认 api_server.py 已启动。' })
+    messages.value.push({ role: 'error', content: 'Cannot reach the backend. Make sure api_server.py is running.' })
     loadStatus()
   } finally {
     isLoading.value = false
@@ -109,7 +109,7 @@ const sendMessage = async (text) => {
 }
 
 const handleEnter = (event) => {
-  // 中文输入法选词时的回车不发送
+  // Don't send when Enter is confirming an IME composition
   if (event.isComposing) return
   event.preventDefault()
   sendMessage()
@@ -132,7 +132,7 @@ const renderMarkdown = (text) => md.render(text || '')
         <span class="brand-mark" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
         </span>
-        <h1>旅行规划助手</h1>
+        <h1>Travel Planner</h1>
       </div>
 
       <div class="topbar-actions">
@@ -141,16 +141,16 @@ const renderMarkdown = (text) => md.render(text || '')
             <span class="status-item">{{ backend.model }}</span>
             <span class="status-item">
               <span :class="['dot', mapsConnected ? 'dot-ok' : 'dot-off']"></span>
-              Google 地图{{ mapsConnected ? '已连接' : '未连接' }}
+              Google Maps {{ mapsConnected ? 'connected' : 'not connected' }}
             </span>
           </template>
           <span v-else-if="backend.state === 'offline'" class="status-item">
             <span class="dot dot-off"></span>
-            后端未连接
+            Backend offline
           </span>
         </div>
         <button class="ghost-btn" type="button" :disabled="isLoading || messages.length === 0" @click="startNewChat">
-          新对话
+          New chat
         </button>
       </div>
     </header>
@@ -158,8 +158,8 @@ const renderMarkdown = (text) => md.render(text || '')
     <main ref="chatContainer" class="thread">
       <div class="thread-inner">
         <section v-if="messages.length === 0" class="welcome">
-          <h2>这次想去哪儿？</h2>
-          <p>告诉我目的地、天数和偏好，我会用 Google 地图查地点和路线，帮你排好行程。</p>
+          <h2>Where to this time?</h2>
+          <p>Tell me your destination, trip length, and preferences. I'll look up places and routes on Google Maps and put together an itinerary for you.</p>
           <div class="suggestions">
             <button v-for="item in suggestions" :key="item" class="suggestion" type="button" @click="sendMessage(item)">
               {{ item }}
@@ -175,7 +175,7 @@ const renderMarkdown = (text) => md.render(text || '')
 
         <div v-if="isLoading" class="thinking" role="status">
           <span class="pulse"></span><span class="pulse"></span><span class="pulse"></span>
-          正在查询并规划…
+          Searching and planning…
         </div>
       </div>
     </main>
@@ -186,12 +186,12 @@ const renderMarkdown = (text) => md.render(text || '')
           ref="inputEl"
           v-model="userInput"
           rows="1"
-          aria-label="输入你的问题"
-          placeholder="输入目的地或问题，Shift + Enter 换行"
+          aria-label="Type your question"
+          placeholder="Enter a destination or question — Shift + Enter for a new line"
           @input="resizeInput"
           @keydown.enter.exact="handleEnter"
         ></textarea>
-        <button class="send-btn" type="submit" :disabled="!canSend" aria-label="发送">
+        <button class="send-btn" type="submit" :disabled="!canSend" aria-label="Send">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></svg>
         </button>
       </form>
@@ -206,7 +206,7 @@ const renderMarkdown = (text) => md.render(text || '')
   height: 100dvh;
 }
 
-/* 顶部栏 */
+/* Top bar */
 .topbar {
   display: flex;
   align-items: center;
@@ -300,7 +300,7 @@ const renderMarkdown = (text) => md.render(text || '')
   cursor: not-allowed;
 }
 
-/* 消息区 */
+/* Message thread */
 .thread {
   flex: 1;
   overflow-y: auto;
@@ -422,7 +422,7 @@ const renderMarkdown = (text) => md.render(text || '')
   }
 }
 
-/* 输入区 */
+/* Composer */
 .composer {
   padding: 12px 24px 18px;
 }
@@ -495,7 +495,7 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-/* AI 回复排版 */
+/* AI reply typography */
 .markdown-body {
   color: var(--ink);
   font-size: 1rem;

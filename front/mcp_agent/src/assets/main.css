@@ -1,6 +1,6 @@
 @import './base.css';
 
-/* 清除默认的 Vue Demo 布局样式，防止干扰 ChatBox 全屏显示 */
+/* Reset the default Vue demo layout styles so they don't interfere with the full-screen ChatBox */
 #app {
   width: 100%;
   max-width: 100%;

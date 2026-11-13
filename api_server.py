@@ -77,7 +77,7 @@ async def status_endpoint():
 async def chat_endpoint(request: ChatRequest):
     """普通聊天接口（非流式），返回完整结果"""
     if not agent:
-        raise HTTPException(status_code=500, detail="Agent 未初始化")
+        raise HTTPException(status_code=500, detail="Agent is not initialized")
 
     run_config = {"configurable": {"thread_id": request.thread_id}}
 
@@ -92,7 +92,7 @@ async def chat_endpoint(request: ChatRequest):
 
         if result.get("messages"):
             return ChatResponse(content=reply_text(result["messages"][-1]))
-        return ChatResponse(content="未获取到回复", status="empty")
+        return ChatResponse(content="No reply received", status="empty")
 
     except Exception as e:
         logging.error("处理出错: %s", traceback.format_exc())
